@@ -7,13 +7,15 @@ var score = 0;
 var bgMusic;
 var life = 3;
 var gameOver = false;
+var gameOn = true;
 var mouseOI = true;
+var initialSize = 20;
 
 //Start Game 
 function startGame() {
     ball = new component(10, 10, "red", 239, 250, "ball");
     plate = new component(80, 8, "blue", 210, 285);
-    createBricks();
+    createBricks(initialSize);
     gameScore = new component("20px", "Consolas", "black", 300, 20, "text");
     bgMusic = new sound("ISwear.mp3");
     bgMusic.play();
@@ -54,6 +56,17 @@ var board =
 }
 
 //Functions
+//StartGame block
+function createBricks(int) {
+    bricks = new Array(int);
+    for (i = 0; i < bricks.length; i++) {
+        var x = ((i % 5) * 98) + 8;
+        var y = (Math.floor(i / 5) * 22) + 25;
+        bricks[i] = new component(80, 20, "green", x, y);
+    }
+}
+
+//component block
 function component(width, height, color, x, y, type) {
     this.width = width;
     this.height = height;
@@ -135,6 +148,25 @@ function component(width, height, color, x, y, type) {
     }   
 }
 
+function getRandomInt(min, max) {
+    return Math.floor((max * Math.random()) + 1);
+}
+
+function die() {
+    life--;
+    if(life <= 0)
+    {
+        gameOver = true;
+    }    
+    ball.x = 239;
+    ball.y = 250;
+}
+
+function increaseScore() {
+    score++;
+}
+
+//sound block
 function sound(src) {
     this.sound = document.createElement("audio");
     this.sound.src = src;
@@ -150,7 +182,15 @@ function sound(src) {
     }  
 }
 
+function pause() {
+    bgMusic.pauseSong();
+}
 
+function play() {
+    bgMusic.play();
+}
+
+//update game area
 function updateGameArea() {
     board.clear();
 
@@ -172,7 +212,7 @@ function updateGameArea() {
 
     scoreUpdate();
     if (hasBricks()) {
-        endGame();
+        resetGame();
     }
     stop();
 }
@@ -201,80 +241,18 @@ function control() {
     }
 }
 
-function moveLeft() {
-    plate.speedX = -10;
-}
-
-function moveRight() {
-    plate.speedX = +10;
-}
-
-function stop() {
-    plate.speedX = 0;
-}
-
-function scoreUpdate() {
-    if (gameOver)
-    {
-        gameScore.text = "Game Over";
-    } else {
-        gameScore.text = "Life: " + life + "  Score: " + score;
-         }
-    gameScore.update();
-}
-
-function pause() {
-    bgMusic.pauseSong();
-}
-
-function play() {
-    bgMusic.play();
-}
-
-function mouse()
-{
-    mouseOI = !mouseOI;
-}
-
-function getRandomInt(min, max) {
-    return Math.floor((max * Math.random()) + 1);
-}
-
-function die() {
-    life--;
-    if(life <= 0)
-    {
-        gameOver = true;
-    }    
-    ball.x = 239;
-    ball.y = 250;
-}
-
-function increaseScore() {
-    score++;
-}
-
-function createBricks() {
-    bricks = new Array(20);
-    for (i = 0; i < bricks.length; i++) {
-        var x = ((i % 5) * 98) + 8;
-        var y = (Math.floor(i / 5) * 22) + 25;
-        bricks[i] = new component(80, 20, "green", x, y);
-    }
-}
-
-function brickUpdater() {
-    for (i = 0; i < bricks.length; i++) {
-        bricks[i].update();
-    }
-}
-
 function brickCollider() {
    for (i = 0; i < bricks.length; i++) {
        if (ball.reflect(bricks[i], "brick")) {
            bricks.splice(i, 1);
        }
     }     
+}
+
+function brickUpdater() {
+    for (i = 0; i < bricks.length; i++) {
+        bricks[i].update();
+    }
 }
 
 function hasBricks() {
@@ -286,7 +264,49 @@ function hasBricks() {
     }
 }
 
-function endGame() {
-    ball.speedX = 0;
-    ball.speedY = 0;
+function scoreUpdate() {
+    if (gameOn)
+    {
+        if (gameOver)
+        {
+            gameScore.text = "Game Over " + score;
+        } else
+        {
+            gameScore.text = "Life: " + life + "  Score: " + score;
+        }
+        gameScore.update();
+    }
+}
+
+function resetGame() {
+    initialSize += 5;
+    if (initialSize <= 40)
+    {
+        createBricks(initialSize);
+    } else {
+        ball.speedX = 0;
+        ball.speedY = 0;
+        ball.update();
+        gameOn = false;
+        gameScore.text = "You Win " + score;
+        gameScore.update();         
+    }
+}
+
+function stop() {
+    plate.speedX = 0;
+}
+
+//Buttons functions
+function moveLeft() {
+    plate.speedX = -10;
+}
+
+function moveRight() {
+    plate.speedX = +10;
+}
+
+function mouse()
+{
+    mouseOI = !mouseOI;
 }
